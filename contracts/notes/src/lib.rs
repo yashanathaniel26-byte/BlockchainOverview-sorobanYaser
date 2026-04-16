@@ -4,68 +4,68 @@ use soroban_sdk::{contract, contractimpl, contracttype, symbol_short, Env, Strin
 // Struktur data yang akan menyimpan notes
 #[contracttype]
 #[derive(Clone, Debug)]
-pub struct Note {
+pub struct GuestEntry {
     id: u64,
-    title: String,
-    content: String,
+    guest_name: String,
+    message: String,
 
 }
 
 // Storage key untuk data notes
-const NOTE_DATA: Symbol = symbol_short!("NOTE_DATA");
+const GUEST_DATA: Symbol = symbol_short!("GUEST_DATA");
 
 #[contract]
-pub struct NotesContract;
+pub struct GuestbookContract;
 
-#[contractimpl]          // ← Bug 2 fix: tambahkan attribute ini
-impl NotesContract {
+#[contractimpl]
+impl GuestbookContract {
 
-    pub fn get_notes(env: Env) -> Vec<Note> {
-    // 1. ambil data notes dari storage
-    return env.storage().instance().get(&NOTE_DATA).unwrap_or(Vec::new(&env));
-}
-
-// Fungsi untuk membuat note baru
-pub fn create_note(env: Env, title: String, content: String) -> String {
-    // 1. ambil data notes dari storage
-    let mut notes: Vec<Note> = env.storage().instance().get(&NOTE_DATA).unwrap_or(Vec::new(&env));
-    
-    // 2. Buat object note baru
-    let note = Note {
-        id: env.prng().gen::<u64>(),
-        title: title,
-        content: content,
-    };
-    
-    // 3. tambahkan note baru ke notes lama
-    notes.push_back(note);
-    
-    // 4. simpan notes ke storage
-    env.storage().instance().set(&NOTE_DATA, &notes);
-    
-    return String::from_str(&env, "Notes berhasil ditambahkan");
-}
-
-// Fungsi untuk menghapus notes berdasarkan id
-pub fn delete_note(env: Env, id: u64) -> String {
-    // 1. ambil data notes dari storage 
-    let mut notes: Vec<Note> = env.storage().instance().get(&NOTE_DATA).unwrap_or(Vec::new(&env));
-
-    // 2. cari index note yang akan dihapus menggunakan perulangan
-    for i in 0..notes.len() {
-        if notes.get(i).unwrap().id == id {
-            notes.remove(i);
-
-            env.storage().instance().set(&NOTE_DATA, &notes);
-            return String::from_str(&env, "Berhasil hapus notes");
-        }
+    pub fn get_guests(env: Env) -> Vec<GuestEntry> {
+        // 1. ambil data dari storage
+        return env.storage().instance().get(&GUEST_DATA).unwrap_or(Vec::new(&env));
     }
 
-    return String::from_str(&env, "Notes tidak ditemukan")
-}
-}                        // ← Bug 1 fix: impl block ditutup di sini
+    // Fungsi untuk membuat entry baru
+    pub fn add_guest(env: Env, guest_name: String, message: String) -> String {
+        // 1. ambil data dari storage
+        let mut guests: Vec<GuestEntry> = env.storage().instance().get(&GUEST_DATA).unwrap_or(Vec::new(&env));
+        
+        // 2. Buat object baru
+        let guest = GuestEntry {
+            id: env.prng().gen::<u64>(),
+            guest_name: guest_name,
+            message: message,
+        };
+        
+        // 3. tambahkan data baru ke yang lama
+        guests.push_back(guest);
+        
+        // 4. simpan ke storage
+        env.storage().instance().set(&GUEST_DATA, &guests);
+        
+        return String::from_str(&env, "Pesan tamu berhasil ditambahkan");
+    }
 
-mod test;                // ← Bug 1 fix: mod test di luar impl block
+    // Fungsi untuk menghapus berdasarkan id
+    pub fn delete_guest(env: Env, id: u64) -> String {
+        // 1. ambil data dari storage 
+        let mut guests: Vec<GuestEntry> = env.storage().instance().get(&GUEST_DATA).unwrap_or(Vec::new(&env));
+
+        // 2. cari index yang akan dihapus menggunakan perulangan
+        for i in 0..guests.len() {
+            if guests.get(i).unwrap().id == id {
+                guests.remove(i);
+
+                env.storage().instance().set(&GUEST_DATA, &guests);
+                return String::from_str(&env, "Berhasil hapus pesan tamu");
+            }
+        }
+
+        return String::from_str(&env, "Pesan tamu tidak ditemukan")
+    }
+}
+
+mod test;
 
 
 
